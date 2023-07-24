@@ -1,10 +1,8 @@
 package getColor;
 
-import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Point;
-import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
@@ -22,22 +20,26 @@ public class Display extends JFrame {
     JButton startButton;
     JButton rgbButton;
     JButton hexButton;
-    JPanel Panel;
+    JPanel panel;
     int pixelWH = 300;
     Color lastFoundColor = null;
     String lastFoundColorRGB = "";
     String lastFoundColorHEX = "";
+    ImageIcon imagebotton = new ImageIcon("icon.png");
+    String fuente = "Comic Sans";
 
     Display() {
-        start();
+        launchModal();
     }
 
-    public void start() {
-
+    public void launchModal() {
+        this.setIconImage(imagebotton.getImage());
         this.setTitle("Get Color");
+        this.setBounds(100,100,300,225);
+        this.setResizable(false);
 
-        Panel = colorPanel(); // sólo muestran texto o imgs, llenar con el nombre del código de color
-        Panel.setBackground(new Color(0x00FF00));
+        panel = colorPanel();
+        panel.setBackground(new Color(0x000000));
 
         startButton = mainButton();
         rgbButton = colorCodeButtons(30, "Copy RGB");
@@ -45,54 +47,52 @@ public class Display extends JFrame {
 
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        this.setSize(pixelWH, pixelWH);
         this.setVisible(true);
         this.setLayout(null);
 
+        
         this.add(startButton);
         this.add(rgbButton);
         this.add(hexButton);
-
+        this.add(panel);
     }
 
     private JPanel colorPanel() {
-
         JPanel auxPanel = new JPanel();
-
         auxPanel.setForeground(lastFoundColor);
-
-        auxPanel.setBounds(0, (pixelWH / 2) - 20, pixelWH, pixelWH / 2);
-
+        auxPanel.setBounds(0, 70, pixelWH, pixelWH / 2);
         return auxPanel;
-
     }
 
     private JButton mainButton() {
         JButton auxBoton = new JButton();
 
-        auxBoton.setBounds((int) ((pixelWH - (pixelWH * 0.8)) / 2), 10, (int) (pixelWH * 0.8), 30);
+        auxBoton.setBounds(30, 0, 240, 60);  //ancho, alto; ancho, alto
 
-        auxBoton.addActionListener(e -> star()); // lo mismo que el "this" pero mejor supongo, no usa actionlistener
+        auxBoton.addActionListener(e -> start(4)); // lo mismo que el "this" pero mejor supongo, no usa actionlistener
         auxBoton.setText("get Color");
         auxBoton.setFocusable(false); // le saca el cuadradito que tiene por estar en focus
 
         auxBoton.setHorizontalTextPosition(JButton.CENTER);
         auxBoton.setVerticalTextPosition(JButton.BOTTOM);
-        auxBoton.setFont(new Font("Comic Sans", Font.BOLD, 25));
+        auxBoton.setFont(new Font(fuente, Font.BOLD, 25));
         auxBoton.setIconTextGap(-15);
         auxBoton.setBackground(Color.lightGray);
         auxBoton.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 
         return auxBoton;
-
     }
 
     public JButton colorCodeButtons(int spawnPoint, String relleno) {
 
         JButton copyButton = new JButton();
         copyButton.setText(relleno);
-        copyButton.setBounds(spawnPoint, 180, 100, 50);
+        copyButton.setBounds(spawnPoint, 110, 100, 50);
         copyButton.setFocusable(false);
+
+        copyButton.setFont(new Font(fuente, Font.BOLD, 15));
+        copyButton.setBackground(Color.lightGray);
+        copyButton.setBorder(BorderFactory.createLineBorder(Color.WHITE));
 
         if (relleno.equals("Copy HEX")) {
             copyButton.addActionListener(e -> {
@@ -108,11 +108,6 @@ public class Display extends JFrame {
             });
         }
         return copyButton;
-    }
-
-    public void star() {
-countDown(5);
-
     }
 
     private static void copyToClipboard(String text) {
@@ -146,41 +141,32 @@ countDown(5);
 
     }
 
-    public void countDown(int espera) {
-    AtomicInteger countdown = new AtomicInteger(espera);
+    public void start(int espera) {
+        AtomicInteger countdown = new AtomicInteger(espera);
 
-    Timer timer = new Timer(1000, e -> {
-        int currentCountdown = countdown.getAndDecrement();
-        startButton.setText("Hover over color in: " + currentCountdown + "s");
+        Timer timer = new Timer(1000, e -> {
+            int currentCountdown = countdown.getAndDecrement();
+            startButton.setText("Hover over the color in: " + currentCountdown + "s");
+            startButton.setFont(new Font(fuente, Font.BOLD, 15));
+            
 
-        if (currentCountdown == 0) {
-            ((Timer) e.getSource()).stop();
-            startButton.setText("get Color"); // Restaurar el texto original del botón
+            if (currentCountdown == 0) {
+                ((Timer) e.getSource()).stop();
+                
+                startButton.setText("get Color"); // Restaurar el texto original del botón
+                startButton.setFont(new Font(fuente, Font.BOLD, 25));
+                DisplayManager display = new DisplayManager();
+                Point cursorLocation = display.getCursorLocation();
+                Color locationColor = display.getColorOf(cursorLocation);
+                lastFoundColor = locationColor;
+                panel.setBackground(lastFoundColor);
+                this.repaint();
 
-            DisplayManager display = new DisplayManager();
+            }
 
-        
-        Point cursorLocation = display.getCursorLocation();
-        Color locationColor = display.getColorOf(cursorLocation);
+        });
 
-        lastFoundColor = locationColor;
-
-        Panel.setBackground(lastFoundColor);
-        this.add(Panel);
-        this.repaint();
-
-        }
-
-    });
-
-
-    timer.start();
-
-}
-
-    public void actualizzr() {
-
-        this.repaint();
+        timer.start();
 
     }
 
@@ -188,12 +174,15 @@ countDown(5);
         red = Math.max(0, Math.min(255, red));
         green = Math.max(0, Math.min(255, green));
         blue = Math.max(0, Math.min(255, blue));
+
         String hexRed = Integer.toHexString(red);
         String hexGreen = Integer.toHexString(green);
         String hexBlue = Integer.toHexString(blue);
+
         hexRed = (hexRed.length() < 2) ? "0" + hexRed : hexRed;
         hexGreen = (hexGreen.length() < 2) ? "0" + hexGreen : hexGreen;
         hexBlue = (hexBlue.length() < 2) ? "0" + hexBlue : hexBlue;
+
         String hexColor = "#" + hexRed + hexGreen + hexBlue;
         return hexColor;
     }
