@@ -12,7 +12,6 @@ public class DisplayManager {
         //hide the implicit one
     }
 
-
     public Point getCursorLocation(){
         return MouseInfo.getPointerInfo().getLocation();
     }
@@ -21,12 +20,9 @@ public class DisplayManager {
         try{
             Robot robot = new Robot();
             return robot.getPixelColor(location_Point.x, location_Point.y);
-
         }catch (AWTException e) {
             e.printStackTrace();
             return null;
-        }  
-
+        }
     }
-    
 }
