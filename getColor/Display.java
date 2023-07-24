@@ -2,75 +2,62 @@ package getColor;
 
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.Image;
 import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
+import javax.swing.JPanel;
 
-public class Display extends JFrame{
+public class Display extends JFrame {
 
-    JButton boton;
-    JLabel label;
-    final int pixelWH = 500;
+    JButton startButton;
+    JPanel Panel;
+    int pixelWH = 300;
     Color lastFoundColor = null;
 
     Display() {
+        start();
     }
 
     public void start() {
-
         this.setTitle("Get Color");
+
+
+        Panel = colorPanel(); // sólo muestran texto o imgs, llenar con el nombre del código de color
+        Panel.setBackground(new Color(0x00FF00));
+        
+        startButton =  mainButton();
+
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setLayout(null);
-        this.setResizable(false);
-        this.setSize(pixelWH, pixelWH);
+
+        this.setSize(pixelWH,pixelWH);
         this.setVisible(true);
-
-        label =  colorLabel();
-
-        label.setForeground(new Color(0x00FF00));
-                                                             
-        boton = mainButton();
+        this.setLayout(null);
         
-        JLabel auxLabel = new JLabel();
         
-        auxLabel.setText("hello hello");
-        auxLabel.setForeground(Color.green);
-        
+        this.add(startButton);
 
-        ImageIcon image = new ImageIcon("150s_3.png"); // Creo un objeto ImageIcon, que busca en el direcorio el ico
-        this.setIconImage(image.getImage()); //
-
-//        this.getContentPane().setBackground(Color.green); // change back
         
-       this.add(boton);
-        this.add(label);
-        this.add(auxLabel);
-        // el append child de la naturaleza
     }
 
+    private JPanel colorPanel() {
 
-
-    private JLabel colorLabel() {
-
-        JLabel auxLabel = new JLabel();
+        JPanel auxPanel = new JPanel();
         
-        auxLabel.setText("hello hello");
-        auxLabel.setForeground(lastFoundColor);
+        auxPanel.setForeground(lastFoundColor);
+        
+        auxPanel.setBounds(0, (pixelWH/2)-20, pixelWH, pixelWH/2);
 
-        return auxLabel;
+
+        return auxPanel;
+
     }
 
-    private JButton mainButton(){
+    private JButton mainButton() {
         JButton auxBoton = new JButton();
 
-        
-        auxBoton.setBounds((int) ((pixelWH-(pixelWH * 0.8))/2) , 10 , (int) (pixelWH * 0.8) ,30 ); // tamaño y lacacion del boton 
+        auxBoton.setBounds((int) ((pixelWH - (pixelWH * 0.8)) / 2), 10, (int) (pixelWH * 0.8), 30);
 
         auxBoton.addActionListener(e -> star()); // lo mismo que el "this" pero mejor supongo, no usa actionlistener
         auxBoton.setText("get Color");
@@ -83,21 +70,23 @@ public class Display extends JFrame{
         auxBoton.setBackground(Color.lightGray);
         auxBoton.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 
-
-    
         return auxBoton;
 
     }
 
-    public void star(){
+    public void star() {
         DisplayManager display = new DisplayManager();
 
         display.setUpTime(5);
         Point cursorLocation = display.getCursorLocation();
         Color locationColor = display.getColorOf(cursorLocation);
 
-        lastFoundColor =  locationColor;
-    
+        lastFoundColor = locationColor;
+
+        Panel.setBackground(lastFoundColor);
+        this.add(Panel);
+        this.repaint();
+
     }
 
 }
