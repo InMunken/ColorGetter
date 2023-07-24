@@ -1,54 +1,67 @@
 package getColor;
 
+import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Point;
+import java.awt.Robot;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 public class Display extends JFrame {
 
     JButton startButton;
+    JButton rgbButton;
+    JButton hexButton;
     JPanel Panel;
     int pixelWH = 300;
     Color lastFoundColor = null;
+    String lastFoundColorRGB = "";
+    String lastFoundColorHEX = "";
+
+    javax.swing.Timer timer;
 
     Display() {
         start();
     }
 
     public void start() {
-        this.setTitle("Get Color");
 
+        this.setTitle("Get Color");
 
         Panel = colorPanel(); // sólo muestran texto o imgs, llenar con el nombre del código de color
         Panel.setBackground(new Color(0x00FF00));
-        
-        startButton =  mainButton();
+
+        startButton = mainButton();
+        rgbButton = colorCodeButtons(30, "Copy RGB");
+        hexButton = colorCodeButtons(165, "Copy HEX");
 
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        this.setSize(pixelWH,pixelWH);
+        this.setSize(pixelWH, pixelWH);
         this.setVisible(true);
         this.setLayout(null);
-        
-        
-        this.add(startButton);
 
-        
+        this.add(startButton);
+        this.add(rgbButton);
+        this.add(hexButton);
+
     }
 
     private JPanel colorPanel() {
 
         JPanel auxPanel = new JPanel();
-        
-        auxPanel.setForeground(lastFoundColor);
-        
-        auxPanel.setBounds(0, (pixelWH/2)-20, pixelWH, pixelWH/2);
 
+        auxPanel.setForeground(lastFoundColor);
+
+        auxPanel.setBounds(0, (pixelWH / 2) - 20, pixelWH, pixelWH / 2);
 
         return auxPanel;
 
@@ -74,10 +87,34 @@ public class Display extends JFrame {
 
     }
 
+    public JButton colorCodeButtons(int spawnPoint, String relleno) {
+
+        JButton copyButton = new JButton();
+        copyButton.setText(relleno);
+        copyButton.setBounds(spawnPoint, 180, 100, 50);
+        copyButton.setFocusable(false);
+
+        if (relleno.equals("Copy HEX")) {
+            copyButton.addActionListener(e -> {
+                lastFoundColorHEX = calculateColorCode(false, lastFoundColor);
+                copyToClipboard(lastFoundColorHEX);
+                JOptionPane.showMessageDialog(this, "Texto copiado al portapapeles: " + lastFoundColorHEX);
+            });
+        } else {
+            copyButton.addActionListener(e -> {
+                lastFoundColorRGB = calculateColorCode(true, lastFoundColor);
+                copyToClipboard(lastFoundColorRGB);
+                JOptionPane.showMessageDialog(this, "Texto copiado al portapapeles: " + lastFoundColorRGB);
+            });
+        }
+        return copyButton;
+    }
+
     public void star() {
+
         DisplayManager display = new DisplayManager();
 
-        display.setUpTime(5);
+        countDown(5);
         Point cursorLocation = display.getCursorLocation();
         Color locationColor = display.getColorOf(cursorLocation);
 
@@ -89,4 +126,72 @@ public class Display extends JFrame {
 
     }
 
+    private static void copyToClipboard(String text) {
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        StringSelection selection = new StringSelection(text);
+        clipboard.setContents(selection, null);
+    }
+
+    public String calculateColorCode(boolean is_rgb, Color color_to_decode) {
+
+        String color_code = "There was not color selected!";
+
+        if (color_to_decode == null) {
+            return color_code;
+        } else {
+            int red = color_to_decode.getRed();
+
+            int green = color_to_decode.getGreen();
+
+            int blue = color_to_decode.getBlue();
+
+            if (is_rgb) {
+                color_code = "" + red + "," + green + "," + blue;
+            } else {
+                color_code = rgbToHex(red, green, blue);
+
+            }
+            return color_code;
+
+        }
+
+    }
+
+
+    
+    public void countDown(int espera){
+
+        try {
+            System.out.println("Al finalizar la cuenta ten el cursor sobre el color que quieres analizar");
+             for (int j = 0; j < espera; j++) {
+                Thread.sleep(1000);
+                System.out.println("quedan:" + (espera - j) + "s. ");
+                startButton.setText("" + (espera - j));
+                this.repaint();
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+
+    }
+    public void actualizzr(){
+
+        this.repaint();
+
+    }
+
+    public static String rgbToHex(int red, int green, int blue) {
+        red = Math.max(0, Math.min(255, red));
+        green = Math.max(0, Math.min(255, green));
+        blue = Math.max(0, Math.min(255, blue));
+        String hexRed = Integer.toHexString(red);
+        String hexGreen = Integer.toHexString(green);
+        String hexBlue = Integer.toHexString(blue);
+        hexRed = (hexRed.length() < 2) ? "0" + hexRed : hexRed;
+        hexGreen = (hexGreen.length() < 2) ? "0" + hexGreen : hexGreen;
+        hexBlue = (hexBlue.length() < 2) ? "0" + hexBlue : hexBlue;
+        String hexColor = "#" + hexRed + hexGreen + hexBlue;
+        return hexColor;
+    }
 }
