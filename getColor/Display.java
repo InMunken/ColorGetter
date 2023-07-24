@@ -8,6 +8,8 @@ import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
+import java.util.concurrent.atomic.AtomicInteger;
+import javax.swing.Timer;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -25,8 +27,6 @@ public class Display extends JFrame {
     Color lastFoundColor = null;
     String lastFoundColorRGB = "";
     String lastFoundColorHEX = "";
-
-    javax.swing.Timer timer;
 
     Display() {
         start();
@@ -111,18 +111,7 @@ public class Display extends JFrame {
     }
 
     public void star() {
-
-        DisplayManager display = new DisplayManager();
-
-        countDown(5);
-        Point cursorLocation = display.getCursorLocation();
-        Color locationColor = display.getColorOf(cursorLocation);
-
-        lastFoundColor = locationColor;
-
-        Panel.setBackground(lastFoundColor);
-        this.add(Panel);
-        this.repaint();
+countDown(5);
 
     }
 
@@ -157,25 +146,39 @@ public class Display extends JFrame {
 
     }
 
+    public void countDown(int espera) {
+    AtomicInteger countdown = new AtomicInteger(espera);
 
-    
-    public void countDown(int espera){
+    Timer timer = new Timer(1000, e -> {
+        int currentCountdown = countdown.getAndDecrement();
+        startButton.setText("Hover over color in: " + currentCountdown + "s");
 
-        try {
-            System.out.println("Al finalizar la cuenta ten el cursor sobre el color que quieres analizar");
-             for (int j = 0; j < espera; j++) {
-                Thread.sleep(1000);
-                System.out.println("quedan:" + (espera - j) + "s. ");
-                startButton.setText("" + (espera - j));
-                this.repaint();
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        if (currentCountdown == 0) {
+            ((Timer) e.getSource()).stop();
+            startButton.setText("get Color"); // Restaurar el texto original del botón
+
+            DisplayManager display = new DisplayManager();
+
+        
+        Point cursorLocation = display.getCursorLocation();
+        Color locationColor = display.getColorOf(cursorLocation);
+
+        lastFoundColor = locationColor;
+
+        Panel.setBackground(lastFoundColor);
+        this.add(Panel);
+        this.repaint();
+
         }
 
+    });
 
-    }
-    public void actualizzr(){
+
+    timer.start();
+
+}
+
+    public void actualizzr() {
 
         this.repaint();
 
